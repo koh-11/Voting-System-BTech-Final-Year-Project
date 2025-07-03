@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Results | SecureVote</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --light-bg: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--dark-color);
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #ffffff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .text-logo span {
+      color: var(--gray-color);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--dark-color);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .summary-box {
+      flex: 1;
+      padding: 1rem;
+      background: #f3f4f6;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    select {
+      padding: 0.6rem;
+      width: 100%;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--border-radius);
+      border: 1px solid #ccc;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.5rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .summary {
+        flex-direction: column;
+      }
+
+      canvas {
+        height: 250px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="text-logo">Secure<span>Vote</span></div>
+    <nav class="nav-links">
+      <a href="#">View Records</a>
+      <a href="#">Stats</a>
+      <a href="#">Logout</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>Track Election Results</h2>
+
+    <div class="summary">
+      <div class="summary-box">
+        <h3>Total Votes</h3>
+        <p><strong>212</strong></p>
+      </div>
+      <div class="summary-box">
+        <h3>Completed Elections</h3>
+        <p><strong>3</strong></p>
+      </div>
+    </div>
+
+    <label for="electionSelect">Select Election</label>
+    <select id="electionSelect">
+      <option>Presidential 2025</option>
+      <option>Student Union 2025</option>
+    </select>
+
+    <canvas id="resultChart" height="350"></canvas>
+
+    <button onclick="exportResults()"><i class="fas fa-file-export"></i> Export Results</button>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('resultChart').getContext('2d');
+    const resultChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Candidate A', 'Candidate B', 'Candidate C'],
+        datasets: [{
+          label: 'Votes',
+          data: [120, 65, 27],
+          backgroundColor: ['#2563eb', '#4ade80', '#facc15'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+    function exportResults() {
+      alert("Export functionality not yet implemented.");
+    }
+  </script>
+
+</body>
+</html>

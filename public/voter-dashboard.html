@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voter Dashboard | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* [All Your Original CSS Stays Unchanged — Copy/Paste as-is] */
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 250px;
+      background-color: #fff;
+      box-shadow: var(--box-shadow);
+      padding-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      z-index: 1100;
+      transition: transform 0.35s cubic-bezier(.77,0,.18,1);
+      will-change: transform;
+    }
+
+    .sidebar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar nav {
+      flex-grow: 1;
+    }
+
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 1rem 2rem;
+      color: var(--dark-color);
+      font-weight: 600;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-left-color: var(--secondary-color);
+    }
+
+    .sidebar nav a i {
+      min-width: 20px;
+    }
+
+    .sidebar .logout {
+      margin-top: auto;
+      padding: 1rem 2rem;
+      border-top: 1px solid #ddd;
+      color: var(--gray-color);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .sidebar .logout a {
+      color: var(--dark-color);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .sidebar .logout:hover a {
+      color: var(--primary-color);
+    }
+
+    .main-content {
+      margin-left: 250px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      min-height: 100vh;
+      width: calc(100% - 250px);
+      transition: margin-left 0.3s ease;
+    }
+
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 1.3rem;
+      background-color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: var(--box-shadow);
+      color: var(--primary-color);
+      cursor: pointer;
+      z-index: 1200;
+    }
+
+    .hamburger.rotate {
+      transform: rotate(180deg);
+    }
+
+    .hamburger i {
+      transition: transform 0.35s cubic-bezier(.77,0,.18,1);
+    }
+
+    .hamburger.rotate i {
+      transform: rotate(180deg);
+    }
+
+    .card {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .election {
+      border: 1px solid #eee;
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn[disabled] {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    ul {
+      margin-top: 1rem;
+      padding-left: 1rem;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--gray-color);
+      padding: 1rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+      }
+
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+      }
+
+      .hamburger {
+        display: block;
+        font-size: 1.2rem;
+        top: 12px;
+        left: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">Secure<span>Vote</span></div>
+    <nav>
+      <a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="voter-campaigns.html"><i class="fas fa-bullhorn"></i> View Campaigns</a>
+      <a href="vote-cast.html"><i class="fas fa-vote-yea"></i> Cast Vote</a>
+      <a href="voter-results.html"><i class="fas fa-vote-yea"></i> View Results</a>
+      <a href="vote-success.html"><i class="fas fa-check-circle"></i> Vote Status</a>
+      <a href="voter-profile.html"><i class="fas fa-user"></i> Profile</a>
+      <a href="voter-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="logout"><i class="fas fa-sign-out-alt"></i> <a href="#" onclick="logout()">Logout</a></div>
+  </aside>
+
+  <div class="hamburger" id="hamburger">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h2>Available Elections</h2>
+      <div id="electionsList">Loading elections...</div>
+    </div>
+
+    <div class="card">
+      <h2>Voting History</h2>
+      <ul id="votingHistory">Loading history...</ul>
+    </div>
+
+    <footer>SecureVote © 2025 – Blockchain-Secured Elections</footer>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- ONLY THE ELECTION LIST SCRIPT CHANGED -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  const session = JSON.parse(localStorage.getItem("voterSessionToken"));
+  if (!session || !session.uid) {
+    window.location.href = "voter-login.html";
+  }
+
+  const electionsList = document.getElementById("electionsList");
+  const votingHistory = document.getElementById("votingHistory");
+
+async function loadElections() {
+  try {
+    const metaDoc = await db.collection("meta").doc("currentActive").get();
+    if (!metaDoc.exists) {
+      electionsList.innerHTML = "<p>No active election found.</p>";
+      return;
+    }
+
+    const electionId = metaDoc.data().electionId;
+    const doc = await db.collection("elections").doc(electionId).get();
+
+    if (!doc.exists) {
+      electionsList.innerHTML = "<p>Election data not found.</p>";
+      return;
+    }
+
+    const e = doc.data();
+    const now = new Date();
+    const start = new Date(e.startDate);
+    const end = new Date(e.endDate);
+    const isOpen = now >= start && now <= end;
+
+    electionsList.innerHTML = `
+      <div class="election">
+        <h4>${e.title}</h4>
+        <p>${e.description}</p>
+        <p>Status: ${isOpen ? "🟢 Open" : now < start ? "🕒 Not Yet Started" : "🔴 Closed"}</p>
+        <button class="btn" ${!isOpen ? "disabled" : ""} onclick="window.location='vote-cast.html'">Vote Now</button>
+      </div>
+    `;
+  } catch (err) {
+    electionsList.innerHTML = `<p>Error loading election: ${err.message}</p>`;
+  }
+}
+
+
+async function loadHistory() {
+  try {
+    const snap = await db.collection("votes")
+      .where("voterId", "==", session.uid)
+      .orderBy("votedAt", "desc")
+      .get();
+
+    votingHistory.innerHTML = "";
+    if (snap.empty) {
+      votingHistory.innerHTML = "<li>No voting history yet.</li>";
+      return;
+    }
+
+    for (const doc of snap.docs) {
+      const h = doc.data();
+      let title = "(Deleted Election)";
+      
+      // Try to fetch the election title
+      try {
+        const electionDoc = await db.collection("elections").doc(h.electionId).get();
+        if (electionDoc.exists) {
+          title = electionDoc.data().title;
+        }
+      } catch (e) {
+        // If fetching election fails, keep default title
+      }
+
+      const date = h.votedAt?.seconds
+        ? new Date(h.votedAt.seconds * 1000).toLocaleString()
+        : "Unknown date";
+
+      votingHistory.innerHTML += `<li>✅ You voted in <strong>${title}</strong> on ${date}</li>`;
+    }
+  } catch (err) {
+    votingHistory.innerHTML = `<li style="color:red;">Error loading history: ${err.message}</li>`;
+  }
+}
+
+
+
+  function logout() {
+    auth.signOut().then(() => {
+      localStorage.removeItem("voterSessionToken");
+      window.location.href = "voter-login.html";
+    });
+  }
+
+  const sidebar = document.getElementById("sidebar");
+  const hamburger = document.getElementById("hamburger");
+  const icon = hamburger.querySelector("i");
+
+  hamburger.addEventListener("click", () => {
+    sidebar.classList.toggle("visible");
+    hamburger.classList.toggle("rotate");
+    icon.classList.toggle("fa-bars");
+    icon.classList.toggle("fa-times");
+  });
+
+  loadElections();
+  loadHistory();
+</script>
+
+</body>
+</html>

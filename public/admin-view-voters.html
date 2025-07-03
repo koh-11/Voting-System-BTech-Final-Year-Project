@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registered Voters | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+
+<script>
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+
+  const session = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (!session) {
+    window.location.href = "admin-login.html";
+  } else {
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed.token /* || Date.now() > parsed.expires */) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --border-radius: 12px;
+      --light-bg: #f9fafb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--dark-color);
+      overflow-x: hidden;
+    }
+
+    /* New Reusable Header */
+    header.mini-header {
+      width: 100%;
+      padding: 12px 24px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 90px auto 2rem;
+      padding: 1.5rem;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filter-controls input,
+    .filter-controls select,
+    .filter-controls button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    table thead {
+      background-color: #f1f5f9;
+    }
+
+    table th,
+    table td {
+      padding: 0.9rem;
+      text-align: left;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    .status-voted {
+      background: #22c55e;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+    }
+
+    .status-badge.not-voted {
+      background: #f59e0b;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 16px auto 1rem;
+        padding: 1rem;
+      }
+
+      table thead {
+        display: none;
+      }
+
+      table, tbody, tr, td {
+        display: block;
+        width: 100%;
+      }
+
+      tr {
+        margin-bottom: 1.5rem;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.5rem 1rem;
+        position: relative;
+        min-height: 2.5rem;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 0.2rem;
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="mini-header">
+    <div class="text-logo">Secure<span>Vote</span></div>
+    <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="container">
+    <h2>Registered Voters</h2>
+
+    <div class="filter-controls">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by name or ID..."
+        style="width: 100%; padding: 0.5rem 1rem; box-sizing: border-box;"
+      />
+      <select id="filterStatus">
+        <option value="all">All Voters</option>
+        <option value="voted">Voted</option>
+        <option value="not-voted">Not Voted</option>
+      </select>
+      <button onclick="exportCSV()" class="btn" style="background: var(--primary-color); color: white; padding: 0.5rem 1rem; border: none; border-radius: 8px;">Export CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Full Name</th>
+          <th>Voter ID</th>
+          <th>Email</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="voterTableBody">
+        <tr><td colspan="5">Loading voters...</td></tr>
+      </tbody>
+
+    </table>
+  </div>
+
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const tableBody = document.getElementById("voterTableBody");
+  const searchInput = document.getElementById("searchInput");
+  const filterStatus = document.getElementById("filterStatus");
+
+  let allVoters = [];
+
+  async function loadVoters() {
+    try {
+      // Step 1: Get active election ID
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      if (!metaDoc.exists) throw new Error("No active election.");
+
+      const electionId = metaDoc.data().electionId;
+
+      // Step 2: Get all votes for that election
+      const votesSnap = await db.collection("votes")
+        .where("electionId", "==", electionId)
+        .get();
+
+      const votedIds = new Set();
+      votesSnap.forEach(doc => votedIds.add(doc.data().voterId));
+
+      // Step 3: Get all voters
+      const votersSnap = await db.collection("voters").get();
+      allVoters = [];
+
+      votersSnap.forEach((doc, index) => {
+        const v = doc.data();
+        const hasVoted = votedIds.has(v.uid);
+
+        allVoters.push({
+          index: index + 1,
+          fullName: (v.firstName || "") + " " + (v.lastName || ""),
+          voterId: v.uid || doc.id,
+          email: v.email || "N/A",
+          status: hasVoted ? "Voted" : "Not Voted"
+        });
+      });
+
+
+      renderTable();
+    } catch (err) {
+      tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">❌ ${err.message}</td></tr>`;
+    }
+  }
+
+  function renderTable() {
+    tableBody.innerHTML = "";
+
+    const search = searchInput.value.toLowerCase();
+    const statusFilter = filterStatus.value;
+
+    const filtered = allVoters.filter(v => {
+      const matchesSearch = v.fullName.toLowerCase().includes(search) || v.voterId.toLowerCase().includes(search);
+      const matchesStatus = statusFilter === "all" || v.status.toLowerCase() === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="5">No matching voters found.</td></tr>`;
+      return;
+    }
+
+    for (const v of filtered) {
+      tableBody.innerHTML += `
+        <tr>
+          <td data-label="#">${v.index}</td>
+          <td data-label="Full Name">${v.fullName}</td>
+          <td data-label="Voter ID">${v.voterId}</td>
+          <td data-label="Email">${v.email}</td>
+          <td data-label="Status">
+            <span class="${v.status === 'Voted' ? 'status-voted' : 'status-badge not-voted'}">${v.status}</span>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function exportCSV() {
+    const rows = [["#", "Full Name", "Voter ID", "Email", "Status"]];
+    allVoters.forEach(v => {
+      rows.push([v.index, v.fullName, v.voterId, v.email, v.status]);
+    });
+
+    const csv = rows.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "registered_voters.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  searchInput.addEventListener("input", renderTable);
+  filterStatus.addEventListener("change", renderTable);
+
+  loadVoters();
+</script>
+
+
+</body>
+</html>

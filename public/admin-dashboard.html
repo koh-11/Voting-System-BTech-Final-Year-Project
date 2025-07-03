@@ -1,0 +1,410 @@
+<!-- admin-dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+       :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 250px;
+      background-color: #fff;
+      box-shadow: var(--box-shadow);
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      padding-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      z-index: 1100;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+    }
+
+    .sidebar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar nav {
+      flex-grow: 1;
+    }
+
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 1rem 2rem;
+      color: var(--dark-color);
+      font-weight: 600;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+      transition: background-color 0.3s, border-color 0.3s;
+      white-space: nowrap;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-left-color: var(--secondary-color);
+    }
+
+    .sidebar nav a i {
+      min-width: 20px;
+      font-size: 1.2rem;
+    }
+
+    .sidebar .logout {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border-top: 1px solid #ddd;
+      color: var(--gray-color);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: color 0.3s;
+    }
+
+    .sidebar .logout a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: inherit;
+    }
+
+    .sidebar .logout a:hover {
+      color: var(--primary-color);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+      flex-grow: 1;
+      width: 100%;
+      transition: margin-left 0.3s ease;
+      position: relative;
+    }
+
+    /* Hamburger icon styles */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 1.3rem;
+      background-color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      color: var(--primary-color);
+      cursor: pointer;
+      z-index: 1200;
+      transition: transform 0.3s ease;
+    }
+
+    .hamburger.rotate {
+      transform: rotate(180deg);
+    }
+
+    /* CARDS & CONTENT */
+    .dashboard h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .file-upload input[type="file"] {
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .stat-box {
+      flex: 1 1 45%;
+      background-color: var(--gray-color);
+      color: white;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    canvas {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .stat-box {
+        flex: 1 1 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+      }
+
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+
+      .hamburger {
+        display: block;
+        font-size: 1.2rem;
+        top: 12px;
+        left: 12px;
+      }
+    }
+  </style>
+
+  <script>
+    const ADMIN_SESSION_KEY = "adminSessionToken";
+    const session = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (!session) {
+      window.location.href = "admin-login.html";
+    } else {
+      try {
+        const parsed = JSON.parse(session);
+        if (!parsed.token) {
+          localStorage.removeItem(ADMIN_SESSION_KEY);
+          window.location.href = "admin-login.html";
+        }
+      } catch {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">Secure<span>Vote</span></div>
+    <nav>
+      <a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+      <a href="admin-create-election.html"><i class="fas fa-plus-circle"></i> Create Election</a>
+      <a href="admin_manage_campaigns.html"><i class="fas fa-bullhorn"></i> Create Campaign</a>
+      <a href="admin-upload-voters.html"><i class="fas fa-file-upload"></i> Upload CSV</a>
+      <a href="admin-vote-tally.html"><i class="fas fa-tasks"></i> Vote Tally</a>
+      <a href="admin-view-stats.html"><i class="fas fa-chart-pie"></i> Statistics</a>
+      <a href="admin-view-voters.html"><i class="fas fa-users"></i> Voters</a>
+      <a href="admin-profile.html"><i class="fas fa-user"></i> View Profile</a>
+      <a href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <a href="admin-logout.html">Logout</a></div>
+  </aside>
+
+  <!-- Hamburger -->
+  <div class="hamburger" id="hamburger">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="dashboard">
+      <h1>Admin Dashboard</h1>
+      <div class="card" id="activeElectionCard">
+        <h2>Active Election</h2>
+        <div id="electionDetails">Loading election...</div>
+        <div style="margin-top: 1rem;">
+          <button class="btn" id="editBtn"><i class="fas fa-edit"></i> Edit Election</button>
+          <button class="btn" id="deleteBtn" style="background-color: crimson;"><i class="fas fa-trash"></i> Delete Election</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let currentElectionId = null;
+
+  async function loadActiveElection() {
+    const container = document.getElementById("electionDetails");
+    const pastContainer = document.createElement("div");
+    pastContainer.id = "pastElections";
+    pastContainer.classList.add("card");
+
+    try {
+      const metaSnap = await db.collection("meta").doc("currentActive").get();
+      if (!metaSnap.exists) {
+        container.innerHTML = "<p style='color: gray;'>No active election created yet.</p>";
+        document.getElementById("editBtn").style.display = "none";
+        document.getElementById("deleteBtn").style.display = "none";
+        return;
+      }
+
+      currentElectionId = metaSnap.data().electionId;
+      const doc = await db.collection("elections").doc(currentElectionId).get();
+      if (!doc.exists) {
+        container.innerHTML = "<p style='color: gray;'>Election not found.</p>";
+        return;
+      }
+
+      const data = doc.data();
+      const candidatesList = data.candidates?.map(c => `<li>${c}</li>`).join("") || "<li>None listed</li>";
+      container.innerHTML = `
+        <p><strong>Title:</strong> ${data.title}</p>
+        <p><strong>Description:</strong> ${data.description}</p>
+        <p><strong>Start:</strong> ${new Date(data.startDate).toLocaleString()}</p>
+        <p><strong>End:</strong> ${new Date(data.endDate).toLocaleString()}</p>
+        <p><strong>Candidates:</strong></p>
+        <ul style="margin-left: 1rem;">${candidatesList}</ul>
+      `;
+
+      loadPastElections(currentElectionId);
+
+    } catch (err) {
+      container.innerHTML = `<p style="color:red;">Error loading election: ${err.message}</p>`;
+    }
+  }
+
+async function loadPastElections(activeId) {
+  const pastContainer = document.createElement("div");
+  pastContainer.className = "card";
+  pastContainer.innerHTML = `<h2>Past Elections</h2><div id="pastElectionsList">Loading...</div>`;
+  document.querySelector(".dashboard").appendChild(pastContainer);
+
+  try {
+    const snapshot = await db.collection("elections")
+      .orderBy("startDate", "desc")
+      .get();
+
+    const listDiv = pastContainer.querySelector("#pastElectionsList");
+
+    const pastElections = snapshot.docs.filter(doc => doc.id !== activeId);
+    
+    if (pastElections.length === 0) {
+      listDiv.innerHTML = "<p>No past elections found.</p>";
+      return;
+    }
+
+    listDiv.innerHTML = "";
+    pastElections.forEach(doc => {
+      const d = doc.data();
+      listDiv.innerHTML += `
+        <div style="border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+          <p><strong>Title:</strong> ${d.title}</p>
+          <p><strong>Description:</strong> ${d.description}</p>
+          <p><strong>Start:</strong> ${new Date(d.startDate).toLocaleString()}</p>
+          <p><strong>End:</strong> ${new Date(d.endDate).toLocaleString()}</p>
+        </div>
+      `;
+    });
+  } catch (error) {
+    pastContainer.innerHTML += `<p style="color:red;">Failed to load past elections: ${error.message}</p>`;
+  }
+}
+
+
+  document.getElementById("deleteBtn").addEventListener("click", async () => {
+    if (!currentElectionId) return alert("No active election ID found.");
+    if (!confirm("Are you sure you want to delete the active election? This cannot be undone.")) return;
+
+    try {
+      await db.collection("elections").doc(currentElectionId).delete();
+      await db.collection("meta").doc("currentActive").delete();
+      alert("Election deleted successfully.");
+      window.location.reload();
+    } catch (err) {
+      alert("❌ Failed to delete election: " + err.message);
+    }
+  });
+
+  document.getElementById("editBtn").addEventListener("click", () => {
+    if (!currentElectionId) return alert("Election not found.");
+    window.location.href = `admin-create-election.html?edit=true&id=${currentElectionId}`;
+  });
+
+  loadActiveElection();
+</script>
+
+</body>
+</html>

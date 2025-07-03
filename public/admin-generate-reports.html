@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Voters | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --light-bg: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--light-bg);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <h2>Upload Voter List</h2>
+  <input type="file" id="csvFile" accept=".csv">
+  <button onclick="uploadVoters()">Upload to Firebase</button>
+
+  <table id="voterTable" style="display: none;">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email / ID</th>
+        <th>Password (generated)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+    storageBucket: "voting-system-4c905.appspot.com",
+    messagingSenderId: "1083005060122",
+    appId: "1:1083005060122:web:d665bb1127a5e9d277fda3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function uploadVoters() {
+    const file = document.getElementById("csvFile").files[0];
+    if (!file) return alert("Select a CSV file first.");
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      const rows = e.target.result.trim().split("\n");
+      const tbody = document.querySelector("#voterTable tbody");
+      tbody.innerHTML = "";
+      document.getElementById("voterTable").style.display = "table";
+
+      for (let row of rows) {
+        const [name, email] = row.split(",").map(x => x.trim());
+        if (!name || !email) continue;
+
+        const rawPassword = generatePassword();
+        const hashedPassword = await hashPassword(rawPassword);
+
+        // Save to Firebase
+        await db.collection("voters").add({ name, email, password: hashedPassword });
+
+        // Show in table (we display unhashed password just once here)
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${email}</td>
+          <td>${rawPassword}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      alert("Upload complete.");
+    };
+    reader.readAsText(file);
+  }
+
+  function generatePassword(length = 10) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#";
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  }
+
+  async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Admin | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9fafb;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 1rem;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    .msg {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .msg.success {
+      color: green;
+    }
+
+    .msg.error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Register New Admin</h2>
+    <input type="email" id="email" placeholder="Admin Email" required />
+    <input type="password" id="password" placeholder="Admin Password" required />
+    <button onclick="registerAdmin()">Register Admin</button>
+    <div id="message" class="msg"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+     const firebaseConfig = {
+  apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+  authDomain: "voting-system-4c905.firebaseapp.com",
+  projectId: "voting-system-4c905",
+  storageBucket: "voting-system-4c905.firebasestorage.app",
+  messagingSenderId: "1083005060122",
+  appId: "1:1083005060122:web:d665bb1127a5e9d277fda3",
+  measurementId: "G-17145Z43GS"
+};
+
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function registerAdmin() {
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("message");
+
+      if (!email || !password) {
+        msg.textContent = "Email and password are required.";
+        msg.className = "msg error";
+        return;
+      }
+
+      const hashed = await hashPassword(password);
+
+      try {
+        await db.collection("admins").add({ email, password: hashed });
+        msg.textContent = "Admin registered successfully.";
+        msg.className = "msg success";
+        document.getElementById("email").value = '';
+        document.getElementById("password").value = '';
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.className = "msg error";
+      }
+    }
+  </script>
+</body>
+</html>

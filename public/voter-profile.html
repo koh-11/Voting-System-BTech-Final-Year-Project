@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voter Profile | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem 1rem;
+    }
+
+    .profile-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      background-color: var(--gray-color);
+      color: white;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      user-select: none;
+    }
+
+    .profile-header h2 {
+      font-size: 1.5rem;
+      color: var(--dark-color);
+    }
+
+    .info-group {
+      margin-bottom: 1rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--gray-color);
+      font-size: 0.85rem;
+    }
+
+    .info-value {
+      color: var(--dark-color);
+      font-size: 1rem;
+      margin-top: 0.2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--border-radius);
+      margin-top: 0.5rem;
+    }
+
+    .actions {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn {
+      padding: 0.7rem 1.2rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .copy-icon {
+      margin-left: 0.5rem;
+      color: var(--gray-color);
+      cursor: pointer;
+    }
+
+    .copied {
+      color: green;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .actions {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="avatar" id="avatar">AL</div>
+      <div>
+        <h2 id="voterName">Alice Luma</h2>
+        <span class="badge">Blockchain Verified Voter</span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Voter ID</div>
+      <div class="info-value">
+        <span id="voterID">VOTER-3421-ABCD</span>
+        <i class="fas fa-copy copy-icon" id="copyID" title="Copy Voter ID"></i>
+        <span class="copied" id="copiedText" style="display: none;">Copied!</span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Email</div>
+      <div class="info-value">alice.luma@example.com</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Phone</div>
+      <div class="info-value">+237 675 123 456</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Organization</div>
+      <div class="info-value">Buea Tech University</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Gender</div>
+      <div class="info-value">Female</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Date of Birth</div>
+      <div class="info-value">March 12, 1999</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Voting Status</div>
+      <div class="info-value" style="color: green;">✅ Voted in 2025 Presidential Election</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" onclick="window.location.href='voter-settings.html'">
+        Edit Profile
+      </button>
+      <button class="btn btn-primary" onclick="window.location.href='voter-dashboard.html'">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Simulate avatar initials from name
+    const name = document.getElementById("voterName").innerText;
+    const avatar = document.getElementById("avatar");
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+    avatar.innerText = initials;
+
+    // Copy voter ID to clipboard
+    document.getElementById("copyID").addEventListener("click", () => {
+      const voterID = document.getElementById("voterID").innerText;
+      navigator.clipboard.writeText(voterID).then(() => {
+        const copiedText = document.getElementById("copiedText");
+        copiedText.style.display = "inline";
+        setTimeout(() => {
+          copiedText.style.display = "none";
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

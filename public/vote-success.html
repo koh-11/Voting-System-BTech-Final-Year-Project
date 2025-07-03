@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote Submitted | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+        :root {
+      --primary-color: #2563eb;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #fff;
+      padding: 1.2rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .logo {
+      font-weight: bold;
+      font-size: 1.4rem;
+      color: var(--primary-color);
+    }
+
+    .user-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--gray-color);
+      font-size: 0.95rem;
+    }
+
+    .user-box i {
+      font-size: 1.2rem;
+      color: var(--gray-color);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      padding: 2.5rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      max-width: 500px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin: 100px auto;
+    }
+
+
+    .card i {
+      font-size: 4rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .card p {
+  font-size: 1rem;
+  color: var(--gray-color);
+  margin-bottom: 1.2rem; /* Add this line */
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+   .btn {
+  margin-top: 0.5rem; /* Adjust space from text */
+  padding: 12px 24px;
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background 0.3s ease;
+  text-decoration: none;
+}
+
+    .btn:hover {
+      background: #1e40af;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: var(--gray-color);
+    }
+
+
+    .mini-header {
+  width: 100%;
+  padding: 12px 24px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  flex-wrap: nowrap;
+   position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 1000
+}
+
+.text-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.text-logo span {
+  color: var(--secondary-color);
+}
+
+/* User Menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  white-space: nowrap;
+}
+
+.user-label {
+  font-size: 0.95rem;
+  color: var(--dark-color);
+  font-weight: 500;
+}
+
+.user-menu i {
+  font-size: 1.8rem;
+  color: var(--gray-color);
+  cursor: pointer;
+}
+
+.user-menu i:hover {
+  color: var(--primary-color);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  list-style: none;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: var(--border-radius);
+  width: 170px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 99;
+}
+
+.dropdown.show {
+  max-height: 300px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  text-decoration: none;
+  color: var(--dark-color);
+}
+
+.dropdown li a:hover {
+  background-color: #f3f4f6;
+  color: var(--primary-color);
+}
+
+/* Add to your <style> block if not present */
+.back-btn {
+  font-size: 0.95rem;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+}
+.back-btn:hover {
+  background-color: var(--primary-color);
+}
+
+/* Responsive Fix */
+@media (max-width: 600px) {
+  .user-label {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    margin: 60px 20px; /* vertical and horizontal spacing */
+    padding: 1.5rem;
+  }
+
+  .card p {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    font-size: 1rem;
+  }
+}
+  </style>
+</head>
+<body>
+
+<header class="mini-header">
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="voter-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <div class="card">
+    <i class="fas fa-check-circle"></i>
+    <h2>Vote Successfully Submitted</h2>
+    <p>Your vote has been securely encrypted and saved in our cloud database.</p>
+    <p>You can now view your voting history or return to your dashboard.</p>
+    <a href="voter-dashboard.html" class="btn">Return to Dashboard</a>
+  </div>
+</main>
+
+<footer>
+  SecureVote © 2025 – Secure and transparent elections with cloud-based encryption.
+</footer>
+
+<script>
+  const userIcon = document.getElementById("userIcon");
+  const dropdown = document.getElementById("dropdownMenu");
+
+  userIcon?.addEventListener("click", () => {
+    dropdown.classList.toggle("show");
+  });
+
+  window.addEventListener("click", function (e) {
+    if (!userIcon?.contains(e.target) && !dropdown?.contains(e.target)) {
+      dropdown?.classList.remove("show");
+    }
+  });
+
+  const userName = "Emmanuel";
+  const greetingElement = document.getElementById("userGreeting");
+  if (greetingElement) {
+    greetingElement.textContent = `Hi, ${userName}`;
+  }
+</script>
+
+</body>
+</html>

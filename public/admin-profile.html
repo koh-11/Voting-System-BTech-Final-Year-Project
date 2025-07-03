@@ -1,0 +1,244 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Profile | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+
+<script>
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+
+  const session = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (!session) {
+    window.location.href = "admin-login.html";
+  } else {
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed.token /* || Date.now() > parsed.expires */) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+
+    .profile-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      background-color: var(--gray-color);
+      color: white;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+    }
+
+    .profile-header h2 {
+      font-size: 1.5rem;
+      color: var(--dark-color);
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: var(--dark-color);
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--border-radius);
+      margin-top: 0.4rem;
+    }
+
+    .info-group {
+      margin-bottom: 1rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--gray-color);
+      font-size: 0.85rem;
+    }
+
+    .info-value {
+      color: var(--dark-color);
+      font-size: 1rem;
+      margin-top: 0.2rem;
+    }
+
+    .privileges {
+      background: #f1f5f9;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+    }
+
+    .privileges ul {
+      list-style: disc inside;
+      padding-left: 1rem;
+      color: var(--dark-color);
+    }
+
+    .actions {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.2rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 500px) {
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="avatar" id="adminAvatar">JR</div>
+      <div>
+        <h2 id="adminName">Joseph Randle</h2>
+        <span class="badge">Admin | SecureVote</span>
+      </div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Email</div>
+      <div class="info-value">joseph.randle@securevote.org</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Institution / Organization</div>
+      <div class="info-value">National Electoral Board</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Last Login</div>
+      <div class="info-value">June 25, 2025 — 10:42 AM</div>
+    </div>
+
+    <div class="info-group">
+      <div class="info-label">Admin Privileges</div>
+      <div class="privileges">
+        <ul>
+          <li>Create and configure elections</li>
+          <li>Monitor live voting results</li>
+          <li>Manage voters and auditors</li>
+          <li>Access detailed audit logs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" onclick="window.location.href='admin-settings.html'">
+        Edit Profile
+      </button>
+      <button class="btn btn-primary" onclick="window.location.href='admin-dashboard.html'">
+        Go to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Auto-initialize avatar with initials
+    const name = document.getElementById("adminName").innerText;
+    const avatar = document.getElementById("adminAvatar");
+    const initials = name.split(" ").map(n => n[0]).join("").toUpperCase();
+    avatar.innerText = initials;
+  </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Election | SecureVote</title>
+
+
+
+<script>
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+
+  const session = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (!session) {
+    window.location.href = "admin-login.html";
+  } else {
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed.token /* || Date.now() > parsed.expires */) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+
+
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --light-bg: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+      margin: 0;
+      padding: 0;
+      color: var(--dark-color);
+    }
+
+    .mini-header {
+      width: 100%;
+      padding: 12px 24px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: #1e40af;
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #1e40af;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      box-sizing: border-box;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background 0.3s;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background-color: #1e40af;
+    }
+
+    .success-msg {
+      text-align: center;
+      color: green;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .candidate-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .candidate-tag {
+      background-color: #e0e7ff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+        .delete-btn {
+      background-color: crimson;
+      margin-top: 1rem;
+    }
+    .delete-btn:hover {
+      background-color: darkred;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+
+      .back-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="mini-header">
+    <div class="text-logo">Secure<span>Vote</span></div>
+    <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="container">
+    <h2><i class="fas fa-plus-circle"></i> Create New Election</h2>
+    <!-- Inside your container, REPLACE your <form> block with this: -->
+<form id="electionForm">
+  <div>
+    <label for="title">Election Title</label>
+    <input type="text" id="title" required />
+  </div>
+  <div>
+    <label for="description">Election Description</label>
+    <textarea id="description" rows="4" required></textarea>
+  </div>
+  <div>
+    <label for="startDate">Start Date & Time</label>
+    <input type="datetime-local" id="startDate" required />
+  </div>
+  <div>
+    <label for="endDate">End Date & Time</label>
+    <input type="datetime-local" id="endDate" required />
+  </div>
+
+  <!-- Candidate Input -->
+  <div>
+    <label for="candidateInput">Add Candidate</label>
+    <input type="text" id="candidateInput" placeholder="e.g. John Doe" />
+    <button type="button" class="btn" onclick="addCandidate()">+ Add Candidate</button>
+    <div class="candidate-list" id="candidateList"></div>
+  </div>
+
+  <button type="submit" class="btn"><i class="fas fa-check-circle"></i> Save Election</button>
+  <button type="button" class="btn delete-btn" id="deleteElectionBtn"><i class="fas fa-trash-alt"></i> Delete Election</button>
+  <p class="success-msg" id="successMsg" style="display: none;">Election saved successfully!</p>
+</form>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let candidates = [];
+
+  function addCandidate() {
+    const input = document.getElementById("candidateInput");
+    const name = input.value.trim();
+    if (!name) return;
+
+    candidates.push(name);
+    const tag = document.createElement("span");
+    tag.className = "candidate-tag";
+    tag.textContent = name;
+    document.getElementById("candidateList").appendChild(tag);
+
+    input.value = "";
+  }
+
+  document.getElementById("electionForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    if (!title || !description || !startDate || !endDate || candidates.length === 0) {
+      alert("All fields are required, including at least one candidate.");
+      return;
+    }
+
+    try {
+      const session = JSON.parse(localStorage.getItem("adminSessionToken"));
+      const adminId = session?.email;
+
+      // 🔥 Step 1: Add new election with auto-ID
+      const ref = await db.collection("elections").add({
+        title,
+        description,
+        startDate,
+        endDate,
+        candidates,
+        createdAt: new Date().toISOString(),
+        adminId
+      });
+
+      // 🔥 Step 2: Set this election as the current active one
+      await db.collection("meta").doc("currentActive").set({
+        electionId: ref.id
+      });
+
+      document.getElementById("successMsg").textContent = "Election saved successfully!";
+      document.getElementById("successMsg").style.display = "block";
+      this.reset();
+      document.getElementById("candidateList").innerHTML = "";
+      candidates = [];
+    } catch (err) {
+      alert("Failed to save election: " + err.message);
+    }
+  });
+
+  // Delete button handler (deletes current active only)
+  document.getElementById("deleteElectionBtn").addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete the current election?")) return;
+
+    try {
+      const active = await db.collection("meta").doc("currentActive").get();
+      const electionId = active.exists ? active.data().electionId : null;
+      if (electionId) {
+        await db.collection("elections").doc(electionId).delete();
+        await db.collection("meta").doc("currentActive").delete();
+        alert("Election deleted.");
+        window.location.reload();
+      } else {
+        alert("No active election found.");
+      }
+    } catch (err) {
+      alert("Failed to delete election: " + err.message);
+    }
+  });
+</script>
+
+
+</body>
+</html>

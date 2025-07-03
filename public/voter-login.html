@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voter Login | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e6f0ff 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: var(--dark-color);
+    }
+    .login-card {
+      background: white;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+    .login-card h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: 700;
+    }
+    .info-text {
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      color: var(--gray-color);
+      line-height: 1.3;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--border-radius);
+      font-size: 0.95rem;
+      transition: border-color 0.3s ease;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 4px var(--primary-color);
+    }
+    .password-input {
+      position: relative;
+    }
+    .password-input input {
+      padding-right: 40px;
+    }
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      color: var(--gray-color);
+      cursor: pointer;
+    }
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: var(--secondary-color);
+    }
+    .help-text {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--gray-color);
+    }
+    .forgot-password {
+      color: var(--primary-color);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .feedback {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #dc2626;
+      display: none;
+    }
+    .spinner {
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <h2>Voter Login</h2>
+  <p class="info-text">Voter credentials are provided by your organization's election admin. If you don't have a Voter ID or password, please contact support.</p>
+  <form id="voterLoginForm">
+    <div class="form-group">
+      <label for="voterEmail">Email / Voter ID</label>
+      <input type="email" id="voterEmail" placeholder="you@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="voterPassword">Password</label>
+      <div class="password-input">
+        <input type="password" id="voterPassword" placeholder="••••••••" required />
+        <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+      </div>
+    </div>
+    <button type="submit" class="btn" id="loginBtn">Login</button>
+  </form>
+  <div class="help-text">
+    <span id="forgotPasswordLink" class="forgot-password">Forgot Password?</span>
+  </div>
+  <div class="feedback" id="feedbackMessage" role="alert" aria-live="assertive"></div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+    storageBucket: "voting-system-4c905.appspot.com",
+    messagingSenderId: "1083005060122",
+    appId: "1:1083005060122:web:d665bb1127a5d277fda3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // If already logged in, redirect to dashboard
+  auth.onAuthStateChanged(async user => {
+  if (user) {
+    try {
+      const docSnap = await db.collection("voters").doc(user.uid).get();
+      const voterData = docSnap.exists ? docSnap.data() : {};
+      localStorage.setItem("voterSessionToken", JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        name: voterData.name || "",
+        voteStatus: voterData.voted || false,
+        timestamp: Date.now()
+      }));
+      window.location.href = "voter-dashboard.html";
+    } catch (err) {
+      console.error("Error fetching voter data:", err);
+      // If error fetching data, fallback to login screen
+    }
+  }
+});
+
+
+  document.querySelector(".toggle-password").addEventListener("click", () => {
+    const pwd = document.getElementById("voterPassword");
+    const icon = document.querySelector(".toggle-password i");
+    if (pwd.type === "password") {
+      pwd.type = "text";
+      icon.classList.replace("fa-eye", "fa-eye-slash");
+    } else {
+      pwd.type = "password";
+      icon.classList.replace("fa-eye-slash", "fa-eye");
+    }
+  });
+
+  document.getElementById("voterLoginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = document.getElementById("voterEmail").value.trim();
+    const password = document.getElementById("voterPassword").value;
+    const feedback = document.getElementById("feedbackMessage");
+    const loginBtn = document.getElementById("loginBtn");
+
+    feedback.style.display = "none";
+    feedback.style.color = "#dc2626";
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      feedback.textContent = "Enter a valid email address.";
+      feedback.style.display = "block";
+      return;
+    }
+
+    loginBtn.innerHTML = `<span class="spinner"></span> Logging in...`;
+    loginBtn.disabled = true;
+
+    try {
+      const res = await auth.signInWithEmailAndPassword(email, password);
+      const uid = res.user.uid;
+
+      // Fetch voter data from Firestore
+      const docSnap = await db.collection("voters").doc(uid).get();
+      const voterData = docSnap.exists ? docSnap.data() : {};
+
+      localStorage.setItem("voterSessionToken", JSON.stringify({
+        uid: uid,
+        email: res.user.email,
+        name: voterData.name || "",
+        voteStatus: voterData.voted || false,
+        timestamp: Date.now()
+      }));
+
+      window.location.href = "voter-dashboard.html";
+    } catch (err) {
+      feedback.textContent = err.message;
+      feedback.style.display = "block";
+      loginBtn.innerHTML = "Login";
+      loginBtn.disabled = false;
+    }
+  });
+
+  document.getElementById("forgotPasswordLink").addEventListener("click", () => {
+    const email = document.getElementById("voterEmail").value.trim();
+    const feedback = document.getElementById("feedbackMessage");
+
+    if (!email) {
+      feedback.textContent = "Please enter your email to reset password.";
+      feedback.style.display = "block";
+      return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        feedback.style.color = "green";
+        feedback.textContent = "Password reset email sent.";
+        feedback.style.display = "block";
+      })
+      .catch((err) => {
+        feedback.style.color = "#dc2626";
+        feedback.textContent = err.message;
+        feedback.style.display = "block";
+      });
+  });
+</script>
+</body>
+</html>

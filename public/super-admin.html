@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Admin/Auditor | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .back-link {
+      text-decoration: none;
+      color: var(--gray-color);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--primary-color);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .msg {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .msg.success {
+      color: green;
+    }
+
+    .msg.error {
+      color: red;
+    }
+
+    footer {
+      background: #fff;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: var(--gray-color);
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Secure<span>Vote</span></div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="card">
+      <h2>Register Admin or Auditor</h2>
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <select id="role">
+        <option value="" disabled selected>Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="auditor">Auditor</option>
+      </select>
+      <button onclick="registerUser()">Register</button>
+      <div id="message" class="msg"></div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    SecureVote © 2025 – Transparent, role-based elections for every organization.
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Logic -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+      authDomain: "voting-system-4c905.firebaseapp.com",
+      projectId: "voting-system-4c905",
+      storageBucket: "voting-system-4c905.appspot.com",
+      messagingSenderId: "1083005060122",
+      appId: "1:1083005060122:web:d665bb1127a5e9d277fda3"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function registerUser() {
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const msg = document.getElementById("message");
+
+      if (!email || !password || !role) {
+        msg.textContent = "All fields are required.";
+        msg.className = "msg error";
+        return;
+      }
+
+      const hashed = await hashPassword(password);
+
+      try {
+        await db.collection("users").add({
+          email,
+          password: hashed,
+          role,
+          createdAt: new Date().toISOString()
+        });
+
+        msg.textContent = `${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully.`;
+        msg.className = "msg success";
+
+        document.getElementById("email").value = '';
+        document.getElementById("password").value = '';
+        document.getElementById("role").value = '';
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.className = "msg error";
+      }
+    }
+  </script>
+</body>
+</html>

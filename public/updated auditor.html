@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auditor Dashboard | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--light-color);
+      color: var(--dark-color);
+      padding-bottom: 2rem;
+    }
+
+    header {
+      background: #fff;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: var(--border-radius);
+    }
+
+    main {
+      max-width: 960px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    tbody tr:hover {
+      background-color: #f3f4f6;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--gray-color);
+      margin-top: 3rem;
+    }
+
+    .masked-id {
+      font-family: monospace;
+      color: var(--gray-color);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="auditor-login.html" class="back-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</header>
+
+<main>
+  <h2>📋 Encrypted Voting Records (Auditor Access)</h2>
+  <p>All votes are anonymous but verifiable. Below are decrypted entries for auditing:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Voter ID</th>
+        <th>Candidate</th>
+        <th>Election</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="recordsTable">
+      <tr><td colspan="5">Loading...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer>
+  &copy; 2025 SecureVote – Verified by Blockchain and Auditor Oversight
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const ENCRYPTION_SECRET = "SecureVote-Anonymous-Key-2025";
+  const recordsTable = document.getElementById("recordsTable");
+
+  function maskId(id) {
+    return id?.slice(0, 4) + "-****";
+  }
+
+  async function fetchRecords() {
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      const electionId = metaDoc.exists ? metaDoc.data().electionId : null;
+
+      const electionTitle = electionId
+        ? (await db.collection("elections").doc(electionId).get()).data()?.title
+        : "(Unknown)";
+
+      const votesSnap = await db.collection("encryptedVotes").get();
+      recordsTable.innerHTML = "";
+
+      if (votesSnap.empty) {
+        recordsTable.innerHTML = "<tr><td colspan='5'>No records found</td></tr>";
+        return;
+      }
+
+      let i = 1;
+
+      votesSnap.forEach(doc => {
+        try {
+          const encrypted = doc.data().encryptedBallot;
+          const decrypted = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_SECRET).toString(CryptoJS.enc.Utf8);
+          const parsed = JSON.parse(decrypted);
+
+          if (!parsed || !parsed.candidate || parsed.electionId !== electionId) return;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${i++}</td>
+            <td class="masked-id">Anonymous</td>
+            <td>${parsed.candidate}</td>
+            <td>${electionTitle}</td>
+            <td>${new Date(parsed.timestamp).toLocaleString()}</td>
+          `;
+          recordsTable.appendChild(tr);
+        } catch (err) {
+          console.warn("Invalid record:", err.message);
+        }
+      });
+
+      if (recordsTable.innerHTML.trim() === "") {
+        recordsTable.innerHTML = "<tr><td colspan='5'>No valid decrypted votes found.</td></tr>";
+      }
+
+    } catch (err) {
+      recordsTable.innerHTML = `<tr><td colspan='5' style='color:red;'>❌ Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  fetchRecords();
+</script>
+</body>
+</html>

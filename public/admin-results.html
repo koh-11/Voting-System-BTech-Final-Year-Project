@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Results | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --border-radius: 12px;
+      --light-bg: #f9fafb;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      margin: 0;
+      padding: 0;
+      color: var(--dark-color);
+    }
+
+    header {
+      padding: 1rem 2rem;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: var(--border-radius);
+    }
+
+    main {
+      max-width: 850px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--gray-color);
+      padding: 1.5rem 0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <h2>🧾 Full Voting Report (Admin View)</h2>
+  <p>Below is the full record of voters, who they voted for, and when.</p>
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>Voter ID</th>
+        <th>Candidate</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="3">Loading results...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer>&copy; 2025 SecureVote – Blockchain-Powered Integrity</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const table = document.querySelector("#resultsTable tbody");
+
+  async function loadResults() {
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      if (!metaDoc.exists) {
+        table.innerHTML = "<tr><td colspan='3'>❌ No active election found in metadata.</td></tr>";
+        return;
+      }
+
+      const electionId = metaDoc.data().electionId;
+
+      const snap = await db.collection("votes")
+        .where("electionId", "==", electionId)
+        .orderBy("votedAt", "desc")
+        .get();
+
+      if (snap.empty) {
+        table.innerHTML = "<tr><td colspan='3'>No votes found for this election.</td></tr>";
+        return;
+      }
+
+      table.innerHTML = "";
+      snap.forEach(doc => {
+        const data = doc.data();
+        const voterId = data.voterId || "Unknown";
+        const candidate = data.candidate || "Unknown";
+        const time = data.votedAt?.seconds ? new Date(data.votedAt.seconds * 1000).toLocaleString() : "N/A";
+        table.innerHTML += `
+          <tr>
+            <td>${voterId}</td>
+            <td>${candidate}</td>
+            <td>${time}</td>
+          </tr>`;
+      });
+    } catch (err) {
+      table.innerHTML = `<tr><td colspan='3' style="color:red;">❌ Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  loadResults();
+</script>
+
+</body>
+</html>

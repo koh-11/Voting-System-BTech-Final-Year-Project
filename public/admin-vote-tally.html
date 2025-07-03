@@ -1,0 +1,185 @@
+<!-- vote-tally.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote Tally | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+   
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --border-radius: 12px;
+      --light-bg: #f9fafb;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      margin: 0;
+      padding: 0;
+      color: var(--dark-color);
+    }
+    header {
+      padding: 1rem 2rem;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+    .back-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: var(--border-radius);
+    }
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      font-size: 1.1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+    }
+    footer {
+      text-align: center;
+      color: var(--gray-color);
+      padding: 1.5rem 0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <h2>🧾 Encrypted Vote Tally</h2>
+  <p>Counting encrypted votes anonymously...</p>
+  <ul id="resultsList">Loading encrypted ballots...</ul>
+</main>
+
+<footer>&copy; 2025 SecureVote – Blockchain-Powered Integrity</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const list = document.getElementById("resultsList");
+  const ENCRYPTION_SECRET = "SecureVote-Anonymous-Key-2025";
+
+  async function tallyEncryptedVotes() {
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      if (!metaDoc.exists) {
+        list.innerHTML = "<li>No active election configured.</li>";
+        return;
+      }
+
+      const electionId = metaDoc.data().electionId;
+
+      const snapshot = await db.collection("encryptedVotes").get();
+      if (snapshot.empty) {
+        list.innerHTML = "<li>No encrypted votes found.</li>";
+        return;
+      }
+
+      const tally = {};
+      let totalVotes = 0;
+
+      snapshot.forEach(doc => {
+        const encrypted = doc.data()?.encryptedBallot;
+        try {
+          const decrypted = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_SECRET).toString(CryptoJS.enc.Utf8);
+          const parsed = JSON.parse(decrypted);
+          if (parsed?.electionId === electionId) {
+            const candidate = parsed?.candidate;
+            if (candidate) {
+              tally[candidate] = (tally[candidate] || 0) + 1;
+              totalVotes++;
+            }
+          }
+        } catch (err) {
+          console.warn("Skipping unreadable ballot:", err.message);
+        }
+      });
+
+      if (Object.keys(tally).length === 0) {
+        list.innerHTML = "<li>No valid votes found for this election.</li>";
+        return;
+      }
+
+     list.innerHTML = "";
+
+      // 1. Get highest vote count
+      const maxVotes = Math.max(...Object.values(tally));
+      const winners = Object.entries(tally).filter(([_, count]) => count === maxVotes);
+
+     const electionDoc = await db.collection("elections").doc(electionId).get();
+      const electionData = electionDoc.data();
+      const now = new Date();
+      const start = new Date(electionData.startDate);
+      const end = new Date(electionData.endDate);
+      const electionOngoing = now >= start && now <= end;
+
+      for (const [candidate, count] of Object.entries(tally)) {
+        const isLeading = winners.find(([name]) => name === candidate);
+        let statusText = "";
+        if (isLeading) {
+          statusText = electionOngoing
+            ? "🎯 <span style='color:orange;'>(Winning)</span>"
+            : "🎉 <span style='color:green;'>(Winner)</span>";
+        }
+        list.innerHTML += `<li><strong>${candidate}:</strong> ${count} vote(s) ${statusText}</li>`;
+      }
+
+      list.innerHTML += `<li style="margin-top:1rem;"><strong>Total votes:</strong> ${totalVotes}</li>`;
+    } catch (err) {
+      list.innerHTML = `<li style="color:red;">❌ Error: ${err.message}</li>`;
+    }
+  }
+
+  tallyEncryptedVotes();
+</script>
+
+</body>
+</html>

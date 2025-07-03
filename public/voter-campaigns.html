@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campaigns | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      margin: 0;
+    }
+
+    header {
+      background-color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .campaign-card {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+      box-shadow: var(--box-shadow);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .campaign-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .campaign-info {
+      flex: 1;
+    }
+
+    .campaign-info h3 {
+      margin: 0 0 0.5rem;
+    }
+
+    .campaign-info p {
+      color: var(--gray-color);
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--gray-color);
+    }
+
+    @media (max-width: 600px) {
+      .campaign-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .campaign-card img {
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="voter-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<div class="container">
+  <h1>Candidate Campaigns</h1>
+  <div id="campaignsContainer">Loading campaigns...</div>
+</div>
+
+<footer>
+  &copy; 2025 SecureVote. All rights reserved.
+</footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+    storageBucket: "voting-system-4c905.appspot.com",
+    messagingSenderId: "1083005060122",
+    appId: "1:1083005060122:web:d665bb1127a5e9d277fda3",
+    measurementId: "G-17145Z43GS"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const container = document.getElementById("campaignsContainer");
+
+  async function loadCampaigns() {
+    container.innerHTML = "Loading campaigns...";
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      if (!metaDoc.exists) {
+        container.innerHTML = "<p>No active election available.</p>";
+        return;
+      }
+
+      const electionId = metaDoc.data().electionId;
+      const snapshot = await db.collection("campaigns")
+        .where("electionId", "==", electionId)
+        .get();
+
+      if (snapshot.empty) {
+        container.innerHTML = "<p>No campaigns available for this election.</p>";
+        return;
+      }
+
+      container.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const fallbackURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=2563eb&color=fff&rounded=true`;
+        const imgSrc = data.photoURL || fallbackURL;
+
+        const card = document.createElement("div");
+        card.className = "campaign-card";
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${data.name}" />
+          <div class="campaign-info">
+            <h3>${data.name}</h3>
+            <p>${data.manifesto || 'No manifesto available.'}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Error loading campaigns:", error);
+      container.innerHTML = "<p>Error loading campaigns. Please try again later.</p>";
+    }
+  }
+
+  loadCampaigns();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Settings | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+
+
+
+
+
+
+  <script>
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+
+  const session = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (!session) {
+    window.location.href = "admin-login.html";
+  } else {
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed.token /* || Date.now() > parsed.expires */) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .settings-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      max-width: 650px;
+      width: 100%;
+    }
+
+    h2 {
+      color: var(--dark-color);
+      margin-bottom: 1rem;
+      font-size: 1.6rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: var(--gray-color);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1.2rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      color: var(--dark-color);
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .password-toggle input {
+      padding-right: 40px;
+    }
+
+    .password-toggle button {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--gray-color);
+      cursor: pointer;
+    }
+
+    .form-section {
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    .toggle-group input {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    .success-msg {
+      color: green;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    @media (max-width: 500px) {
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="settings-container">
+    <h2>Admin Account Settings</h2>
+
+    <form id="adminSettingsForm">
+
+      <!-- Contact Info -->
+      <div class="form-section">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" value="admin@securevote.org" required />
+
+        <label for="adminPhone">Phone Number</label>
+        <input type="tel" id="adminPhone" value="+237 655 001 234" />
+      </div>
+
+      <!-- Password Update -->
+      <div class="form-section">
+        <label for="adminPassword">New Password</label>
+        <div class="password-toggle">
+          <input type="password" id="adminPassword" minlength="12" placeholder="••••••••••••" required />
+          <button type="button" id="togglePwd"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+
+      <!-- Optional 2FA & Alerts -->
+      <div class="form-section">
+        <label>Enable Two-Factor Authentication</label>
+        <div class="toggle-group">
+          <input type="checkbox" id="twoFA" disabled />
+          <span style="color: var(--gray-color); font-size: 0.9rem;">(Coming soon)</span>
+        </div>
+
+        <label>Email Alerts</label>
+        <div class="toggle-group">
+          <input type="checkbox" id="alerts" checked />
+          <span>Receive updates for election activities</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <div class="success-msg" id="successMessage">✔ Settings updated successfully!</div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Toggle password visibility
+    const toggleBtn = document.getElementById("togglePwd");
+    const pwdInput = document.getElementById("adminPassword");
+
+    toggleBtn.addEventListener("click", () => {
+      const icon = toggleBtn.querySelector("i");
+      const isPwd = pwdInput.type === "password";
+      pwdInput.type = isPwd ? "text" : "password";
+      icon.classList.toggle("fa-eye");
+      icon.classList.toggle("fa-eye-slash");
+    });
+
+    // Fake save settings
+    document.getElementById("adminSettingsForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const msg = document.getElementById("successMessage");
+      msg.style.display = "block";
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 3000);
+    });
+  </script>
+</body>
+</html>

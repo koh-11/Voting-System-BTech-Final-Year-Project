@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Voters | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root { --primary-color: #2563eb; --secondary-color: #1e40af; --border-radius: 12px; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+    .text-logo { font-size:1.5rem; font-weight:700; color:var(--primary-color); }
+    .text-logo span { color:var(--secondary-color); }
+    .back-btn { background:var(--primary-color); color:#fff; padding:8px 16px; border-radius:var(--border-radius); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    main { padding:2rem; max-width:900px; margin:2rem auto; background:#fff; border-radius:var(--border-radius); box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+    input[type="file"] { display:none; }
+    .custom-file-label, .upload-btn { display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; border-radius:var(--border-radius); font-weight:600; }
+    .custom-file-label { background:var(--primary-color); color:#fff; padding:10px 20px; }
+    .custom-file-label:hover { background:var(--secondary-color); }
+    .upload-btn { background:var(--secondary-color); color:#fff; padding:10px 24px; margin-left:1rem; box-shadow:0 2px 8px rgba(30,64,175,0.08); position:relative; }
+    .upload-btn.loading { opacity:0.7; cursor:not-allowed; }
+    .upload-btn.loading .spinner { display:inline-block; }
+    .spinner { display:none; width:18px; height:18px; border:3px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .feedback { margin-top:1rem; font-weight:500; }
+    .feedback.success { color:green; }
+    .feedback.error { color:red; }
+    table { width:100%; border-collapse:collapse; margin-top:2rem; }
+    th, td { padding:10px; border:1px solid #ddd; text-align:left; }
+    th { background:#f5f5f5; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <h2>Upload Voter CSV</h2>
+  <label for="csvFile" class="custom-file-label"><i class="fas fa-file-csv"></i> Choose CSV File</label>
+  <input type="file" id="csvFile" accept=".csv" />
+  <button class="upload-btn" id="uploadBtn">
+    <span class="btn-text">Upload & Notify</span><span class="spinner"></span>
+  </button>
+
+  <div class="feedback" id="feedbackMsg"></div>
+
+  <table id="voterTable" style="display:none;">
+    <thead>
+      <tr><th>Name</th><th>Email</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+  emailjs.init("xcC3JG3eNwtXwJoVl");
+
+  const app = firebase.initializeApp({
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+    storageBucket: "voting-system-4c905.appspot.com",
+    messagingSenderId: "1083005060122",
+    appId: "1:1083005060122:web:d665bb1127a5e9d277fda3"
+  });
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // 🧠 Get admin identifier from localStorage session
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+  const adminSession = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || "{}");
+  const adminEmail = adminSession?.email || "unknown";
+
+  function generatePassword(len=10){
+    const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#";
+    return Array.from({length:len}, ()=>chars[Math.floor(Math.random()*chars.length)]).join("");
+  }
+  function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+  function readFileAsText(f){ return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(f);}); }
+
+  document.getElementById("uploadBtn").onclick = async () => {
+    const file = document.getElementById("csvFile").files[0];
+    const fb = document.getElementById("feedbackMsg");
+    const tbl = document.getElementById("voterTable");
+    const tb = tbl.querySelector("tbody");
+    const btn = document.getElementById("uploadBtn");
+    const txt = btn.querySelector(".btn-text");
+
+    tb.innerHTML=""; fb.textContent=""; fb.className="feedback"; tbl.style.display="none";
+    if (!file) return fb.textContent="⚠ Please select a CSV file.", fb.classList.add("error");
+
+    if (!adminEmail || adminEmail === "unknown") {
+      fb.textContent = "❌ Admin session missing. Please login again.";
+      fb.classList.add("error");
+      return;
+    }
+
+    btn.classList.add("loading"); btn.disabled = true; txt.textContent="Processing...";
+
+    try {
+      const content = await readFileAsText(file);
+      const lines = content.trim().split("\n");
+      if (lines.length < 2) throw new Error("CSV must contain at least one data row");
+
+      let success=0, errors=[];
+      for (let i=1;i<lines.length;i++){
+        const [n,e] = lines[i].split(",").map(x=>x.trim());
+        if (!n || !e || !validateEmail(e)){ errors.push(`Row ${i+1}: invalid (${e||"missing"})`); continue; }
+        try {
+          const pw = generatePassword();
+          const user = await auth.createUserWithEmailAndPassword(e,pw);
+          await db.collection("voters").doc(user.user.uid).set({
+            name: n,
+            email: e,
+            voted: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            adminId: adminEmail // ✅ Inject admin identifier here
+          });
+          await emailjs.send("service_yokx3xs","template_uou2pth",{
+            to_name: n, to_email: e, user_password: pw
+          });
+          tb.insertAdjacentHTML("beforeend",`<tr><td>${n}</td><td>${e}</td></tr>`);
+          success++;
+        } catch(err) {
+          errors.push(`Row ${i+1}: ${err.message}`);
+        }
+      }
+
+      if (success) { tbl.style.display="table"; fb.classList.add("success"); }
+      else fb.classList.add("error");
+
+      fb.innerHTML = `
+        ✅ ${success} uploaded<br>
+        ⚠ ${errors.length} errors${errors.length ? `:<br>${errors.join("<br>")}` : ""}
+      `;
+    } catch(err){
+      fb.classList.add("error");
+      fb.textContent = `❌ Upload failed: ${err.message}`;
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled=false;
+      txt.textContent="Upload & Notify";
+    }
+  };
+</script>
+</body>
+</html>

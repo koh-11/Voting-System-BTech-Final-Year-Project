@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Voters | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --gray-color: #6b7280;
+      --dark-color: #1f2937;
+      --light-bg: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .custom-file-label {
+      background-color: var(--primary-color);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      display: inline-flex;
+      gap: 8px;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    .upload-btn {
+      background: #1e40af;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.3s ease;
+      gap: 10px;
+    }
+
+    .upload-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    .upload-btn.loading .spinner {
+      display: block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .feedback {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
+      white-space: pre-line;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: var(--light-bg);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+</header>
+
+<main>
+  <h2>Upload Voter CSV</h2>
+  <label for="csvFile" class="custom-file-label">
+    <i class="fas fa-file-csv"></i> Choose CSV File
+  </label>
+  <input type="file" id="csvFile" accept=".csv" />
+  
+  <button class="upload-btn" id="uploadBtn">
+    <span class="btn-text">Upload & Notify</span>
+    <span class="spinner"></span>
+  </button>
+
+  <div class="feedback" id="feedbackMsg"></div>
+
+  <table id="voterTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script type="module">
+  // Initialize EmailJS
+  (function() {
+    emailjs.init("xcC3JG3eNwtXwJoVl");
+  })();
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905",
+    storageBucket: "voting-system-4c905.appspot.com",
+    messagingSenderId: "1083005060122",
+    appId: "1:1083005060122:web:d665bb1127a5e9d277fda3",
+    measurementId: "G-17145Z43GS"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Password generator
+  function generatePassword(length = 10) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#";
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  }
+
+  // Email validation
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Main upload function
+  document.getElementById("uploadBtn").addEventListener("click", async function() {
+    const file = document.getElementById("csvFile").files[0];
+    const feedback = document.getElementById("feedbackMsg");
+    const table = document.getElementById("voterTable");
+    const tbody = table.querySelector("tbody");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const btnText = uploadBtn.querySelector(".btn-text");
+
+    // Reset UI
+    tbody.innerHTML = "";
+    feedback.innerHTML = "";
+    feedback.className = "feedback";
+    table.style.display = "none";
+
+    if (!file) {
+      feedback.textContent = "Please choose a CSV file.";
+      feedback.classList.add("error");
+      return;
+    }
+
+    // Set loading state
+    uploadBtn.disabled = true;
+    uploadBtn.classList.add("loading");
+    btnText.textContent = "Processing...";
+
+    try {
+      const fileContent = await readFileAsText(file);
+      const lines = fileContent.trim().split("\n");
+      let successCount = 0;
+      let errorMessages = [];
+
+      // Process each line
+      for (let i = 1; i < lines.length; i++) {
+        const [name, email] = lines[i].split(",").map(x => x.trim());
+        
+        if (!name || !email || !validateEmail(email)) {
+          errorMessages.push(`Row ${i}: Invalid format (${email || 'missing email'})`);
+          continue;
+        }
+
+        try {
+          const password = generatePassword();
+          
+          // Create auth user
+          await auth.createUserWithEmailAndPassword(email, password);
+          
+          // Add to Firestore
+          await db.collection("voters").add({
+            name,
+            email,
+            password, // Note: In production, store only hashed passwords
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          // Send email
+          await emailjs.send("service_yokx3xs", "template_uou2pth", {
+            to_name: name,
+            to_email: email,
+            user_password: password
+          });
+
+          // Add to table
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${name}</td><td>${email}</td>`;
+          tbody.appendChild(row);
+          successCount++;
+        } catch (error) {
+          errorMessages.push(`Row ${i}: ${error.message}`);
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        table.style.display = "table";
+        feedback.classList.add("success");
+      } else {
+        feedback.classList.add("error");
+      }
+
+      feedback.innerHTML = `
+        <strong>Processed ${lines.length - 1} records:</strong><br>
+        • Success: ${successCount}<br>
+        • Failed: ${errorMessages.length}<br><br>
+        ${errorMessages.length > 0 ? '<strong>Errors:</strong><br>' + errorMessages.join('<br>') : ''}
+      `;
+
+    } catch (error) {
+      feedback.innerHTML = `<strong class="error">Error processing file:</strong> ${error.message}`;
+      feedback.classList.add("error");
+    } finally {
+      // Reset button state
+      uploadBtn.disabled = false;
+      uploadBtn.classList.remove("loading");
+      btnText.textContent = "Upload & Notify";
+    }
+  });
+
+  // Helper function to read file
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = event => resolve(event.target.result);
+      reader.onerror = error => reject(error);
+      reader.readAsText(file);
+    });
+  }
+</script>
+
+<!-- Load Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<!-- Load EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+</body>
+</html>

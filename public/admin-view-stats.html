@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voting Stats | SecureVote</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+
+<script>
+  const ADMIN_SESSION_KEY = "adminSessionToken";
+
+  const session = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (!session) {
+    window.location.href = "admin-login.html";
+  } else {
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed.token /* || Date.now() > parsed.expires */) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        window.location.href = "admin-login.html";
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = "admin-login.html";
+    }
+  }
+</script>
+
+
+
+
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --gray-color: #6b7280;
+      --light-color: #f9fafb;
+      --border-radius: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+    }
+
+    /* Imported Header from Generate Report */
+    .mini-header {
+      width: 100%;
+      padding: 12px 24px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .text-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .text-logo span {
+      color: var(--secondary-color);
+    }
+
+    .back-btn {
+      font-size: 0.95rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-top: 2rem;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    @media (max-width: 600px) {
+      .back-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+      }
+
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+
+      canvas {
+        height: 260px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Replaced Header -->
+  <header class="mini-header">
+    <div class="text-logo">Secure<span>Vote</span></div>
+    <a href="admin-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <h2>Voting Statistics</h2>
+    <canvas id="voteChart"></canvas>
+
+    <div class="legend"></div>
+
+  </div>
+
+  <!-- Script Section -->
+  <!-- Firebase & Chart Loader -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const ENCRYPTION_SECRET = "SecureVote-Anonymous-Key-2025";
+
+  const ctx = document.getElementById('voteChart').getContext('2d');
+  let voteChart;
+
+  function generateLabel(index) {
+    return "Candidate " + String.fromCharCode(65 + index); // A, B, C...
+  }
+
+  function getColor(index) {
+    const colors = ['#2563eb', '#4ade80', '#facc15', '#f472b6', '#a78bfa', '#fdba74', '#fb7185', '#10b981'];
+    return colors[index % colors.length];
+  }
+
+  async function loadChart() {
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      if (!metaDoc.exists) throw new Error("No active election.");
+
+      const electionId = metaDoc.data().electionId;
+      const electionDoc = await db.collection("elections").doc(electionId).get();
+      if (!electionDoc.exists) throw new Error("Election not found.");
+
+      const candidates = electionDoc.data().candidates || [];
+      const candidateCounts = {};
+      candidates.forEach(c => candidateCounts[c] = 0);
+
+      const encryptedVotes = await db.collection("encryptedVotes").get();
+
+      encryptedVotes.forEach(doc => {
+        const encrypted = doc.data().encryptedBallot;
+        try {
+          const decrypted = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_SECRET).toString(CryptoJS.enc.Utf8);
+          const parsed = JSON.parse(decrypted);
+          if (parsed?.electionId === electionId) {
+            const candidate = parsed.candidate;
+            if (candidate in candidateCounts) {
+              candidateCounts[candidate]++;
+            }
+          }
+        } catch (err) {
+          console.warn("Corrupted or invalid ballot:", err.message);
+        }
+      });
+
+      const labels = Object.keys(candidateCounts); // This now holds real names
+      const values = Object.values(candidateCounts);
+      const colors = labels.map((_, i) => getColor(i));
+
+      // Replace old legend dynamically
+      const legendContainer = document.querySelector(".legend");
+      legendContainer.innerHTML = labels.map((label, i) => `
+        <span><i style="background-color:${colors[i]};"></i> ${label}</span>
+      `).join("");
+
+      // Replace canvas title
+      document.querySelector("h2").textContent = `Voting Statistics – ${labels.length} Candidate(s)`;
+
+      voteChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Votes',
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Chart error:", err.message);
+      document.querySelector(".container").innerHTML += `<p style="color:red;">❌ ${err.message}</p>`;
+    }
+  }
+
+  loadChart();
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voter Settings | SecureVote</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --dark-color: #1f2937;
+      --light-color: #f9fafb;
+      --gray-color: #6b7280;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .settings-container {
+      background: white;
+      box-shadow: var(--box-shadow);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h2 {
+      color: var(--dark-color);
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      margin-top: 2rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: var(--gray-color);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1.2rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      color: var(--dark-color);
+    }
+
+    input:disabled {
+      background: #f3f4f6;
+      cursor: not-allowed;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .password-toggle input {
+      padding-right: 40px;
+    }
+
+    .password-toggle .toggle-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--gray-color);
+    }
+
+    .form-actions {
+      text-align: right;
+    }
+
+    .success-msg {
+      color: green;
+      margin-top: 1rem;
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 500px) {
+      .form-actions {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="settings-container">
+    <h2>Voter Account Settings</h2>
+
+    <form id="settingsForm">
+
+      <!-- Profile Section -->
+      <div class="section">
+        <label>Voter ID</label>
+        <input type="text" value="VOTER-3421-ABCD" disabled />
+
+        <label>Full Name</label>
+        <input type="text" value="Alice Luma" disabled />
+
+        <label>Email</label>
+        <input type="email" id="email" value="alice.luma@example.com" required />
+
+        <label>Phone Number</label>
+        <input type="tel" id="phone" value="+237 675 123 456" />
+
+        <label>Organization</label>
+        <input type="text" id="org" value="Buea Tech University" />
+
+        <label>Gender</label>
+        <select id="gender">
+          <option selected>Female</option>
+          <option>Male</option>
+          <option>Non-Binary</option>
+          <option>Prefer not to say</option>
+        </select>
+      </div>
+
+      <!-- Password Section -->
+      <div class="section">
+        <label>New Password</label>
+        <div class="password-toggle">
+          <input type="password" id="newPassword" minlength="8" placeholder="••••••••">
+          <button type="button" class="toggle-icon"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update Settings</button>
+        <div class="success-msg" id="successMsg">✔ Profile updated successfully!</div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Toggle password visibility
+    const toggleBtn = document.querySelector('.toggle-icon');
+    const newPassword = document.getElementById('newPassword');
+
+    toggleBtn.addEventListener('click', () => {
+      const icon = toggleBtn.querySelector('i');
+      const isPassword = newPassword.type === 'password';
+      newPassword.type = isPassword ? 'text' : 'password';
+      icon.classList.toggle('fa-eye');
+      icon.classList.toggle('fa-eye-slash');
+    });
+
+    // Submit logic
+    document.getElementById("settingsForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const success = document.getElementById("successMsg");
+      success.style.display = "block";
+
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        window.location.href = "voter-profile.html";
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
