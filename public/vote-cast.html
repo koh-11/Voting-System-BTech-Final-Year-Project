@@ -180,6 +180,7 @@
 
           const encryptedPayload = CryptoJS.AES.encrypt(
             JSON.stringify({
+              voterId, // ✅ include this
               electionId,
               electionTitle: data.title,
               candidate: selected.value,

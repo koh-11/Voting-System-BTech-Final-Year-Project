@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Auditor Dashboard | SecureVote</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
   <style>
     :root {
       --primary-color: #2563eb;
@@ -14,413 +13,197 @@
       --light-color: #f9fafb;
       --gray-color: #6b7280;
       --border-radius: 12px;
-      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Segoe UI", sans-serif;
     }
 
     body {
       background: var(--light-color);
-      min-height: 100vh;
-      padding: 2rem;
       color: var(--dark-color);
+      padding-bottom: 2rem;
     }
 
     header {
-      background-color: #ffffff;
-      padding: 16px 24px;
+      background: #fff;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       position: sticky;
       top: 0;
-      z-index: 1000;
-      margin-bottom: 1.5rem;
+      z-index: 999;
     }
 
     .text-logo {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--primary-color);
-      text-decoration: none;
     }
 
     .text-logo span {
-      color: var(--gray-color);
+      color: var(--secondary-color);
     }
 
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .nav-links a {
+    .back-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
       text-decoration: none;
-      color: var(--dark-color);
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
-
-    .nav-links a:hover {
-      color: var(--primary-color);
-    }
-
-    .search-container label {
-      font-weight: 600;
-      color: var(--gray-color);
-      margin-bottom: 0.3rem;
-      display: block;
-    }
-
-    .search-container input[type="text"] {
-      width: 100%;
-      padding: 0.6rem 1rem;
       border-radius: var(--border-radius);
-      border: 1px solid #d1d5db;
-      font-size: 1rem;
-      outline-offset: 2px;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-bottom: 1rem;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 1rem;
-      box-shadow: var(--box-shadow);
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      background: white;
-    }
-
-    thead {
-      background-color: var(--primary-color);
-      color: white;
     }
 
     th, td {
-      padding: 0.75rem 1rem;
       text-align: left;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 0.75rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: white;
     }
 
     tbody tr:hover {
       background-color: #f3f4f6;
     }
 
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--gray-color);
+      margin-top: 3rem;
+    }
+
     .masked-id {
       font-family: monospace;
-      letter-spacing: 0.1em;
       color: var(--gray-color);
-      font-style: italic;
-    }
-
-    .btn-export {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn-export:hover {
-      background-color: var(--secondary-color);
-    }
-
-    .blockchain-verification {
-      margin-top: 2rem;
-      background: #f1f5f9;
-      padding: 1rem 1.5rem;
-      border-radius: var(--border-radius);
-      color: var(--dark-color);
-      font-size: 0.9rem;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .blockchain-verification span {
-      font-family: monospace;
-      color: var(--primary-color);
-    }
-
-    @media (max-width: 600px) {
-      thead {
-        display: none;
-      }
-      table, tbody, tr, td {
-        display: block;
-        width: 100%;
-      }
-      tr {
-        margin-bottom: 1rem;
-        border-bottom: 2px solid var(--primary-color);
-      }
-      td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-      }
-      td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 1rem;
-        width: 45%;
-        padding-left: 1rem;
-        font-weight: 600;
-        text-align: left;
-        color: var(--gray-color);
-      }
-      .btn-export {
-        width: 100%;
-      }
-    }
-
-    /* Hamburger icon animation */
-    .hamburger.open span:nth-child(1) {
-      transform: rotate(45deg) translate(6px, 6px);
-    }
-
-    .hamburger.open span:nth-child(2) {
-      opacity: 0;
-    }
-
-    .hamburger.open span:nth-child(3) {
-      transform: rotate(-45deg) translate(7px, -7px);
-    }
-
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 4px;
-      width: 28px;
-      height: 28px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      z-index: 1100;
-      padding: 0;
-    }
-
-    .hamburger span {
-      display: block;
-      height: 3px;
-      width: 20px;
-      background: var(--primary-color);
-      border-radius: 2px;
-      transition: 0.3s;
-    }
-
-    .nav-close {
-      font-size: 1.5rem;
-      padding: 0.5rem;
-      cursor: pointer;
-      color: var(--primary-color);
-      display: none;
-    }
-
-    @media (max-width: 600px) {
-      header {
-        padding: 10px 12px;
-      }
-
-      .nav-links {
-        position: absolute;
-        top: 60px;
-        right: 8px;
-        background: #fff;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        border-radius: var(--border-radius);
-        flex-direction: column;
-        gap: 0;
-        min-width: 160px;
-        display: none;
-        z-index: 1050;
-        overflow: hidden;
-      }
-
-      .nav-links.show {
-        display: flex;
-      }
-
-      .nav-links a {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-      }
-
-      .nav-links a:last-child {
-        border-bottom: none;
-      }
-
-      .hamburger {
-        display: flex;
-        margin-left: auto;
-      }
-
-      .nav-close {
-        display: block;
-      }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="text-logo">Secure<span>Vote</span></div>
-    <nav class="nav-links" id="navLinks">
-      <a href="#">View Records</a>
-      <a href="#">Stats</a>
-      <a href="#">Logout</a>
-    </nav>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-expanded="false" aria-controls="navLinks">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-  </header>
+<header>
+  <div class="text-logo">Secure<span>Vote</span></div>
+  <a href="auditor-login.html" class="back-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</header>
 
-  <section class="search-container">
-    <label for="candidateSearch">Search Candidate Name:</label>
-    <input
-      type="text"
-      id="candidateSearch"
-      placeholder="Enter candidate name to filter"
-      autocomplete="off"
-      aria-label="Search candidate name"
-    />
-  </section>
+<main>
+  <h2>📋 Encrypted Voting Records (Auditor Access)</h2>
+  <p>All votes are anonymous but verifiable. Below are decrypted entries for auditing:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Voter ID</th>
+        <th>Candidate</th>
+        <th>Election</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="recordsTable">
+      <tr><td colspan="5">Loading...</td></tr>
+    </tbody>
+  </table>
+</main>
 
-  <section>
-    <table aria-describedby="votingRecordsDesc">
-      <caption id="votingRecordsDesc" class="sr-only">Voting Records Audit Table</caption>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Voter ID</th>
-          <th>Candidate</th>
-          <th>Election</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="recordsTableBody">
-        <!-- Records inserted by JS -->
-      </tbody>
-    </table>
+<footer>
+  &copy; 2025 SecureVote – Verified by Blockchain and Auditor Oversight
+</footer>
 
-    <button class="btn-export" id="exportCSV" aria-label="Export anonymized voting records as CSV">
-      Export CSV
-    </button>
-  </section>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyApShK8VIbB2HTRnYqwXEJMRA1tqJ28GkE",
+    authDomain: "voting-system-4c905.firebaseapp.com",
+    projectId: "voting-system-4c905"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const ENCRYPTION_SECRET = "SecureVote-Anonymous-Key-2025";
+  const recordsTable = document.getElementById("recordsTable");
 
-  <section class="blockchain-verification" aria-live="polite" aria-atomic="true">
-    <div>
-      🔒 Verified by Hyperledger Fabric
-    </div>
-    <div>
-      Block ID: <span id="blockId">#0784b3f9a7c12d</span> | Status: <span id="blockStatus">Unaltered</span>
-    </div>
-  </section>
+  function maskId(id) {
+    return id?.slice(0, 4) + "-****";
+  }
 
-  <script>
-    const records = [
-      { voterId: "VTR-0021", candidate: "Jane Doe", election: "Presidential 2025", timestamp: "2025-06-12 10:21 AM" },
-      { voterId: "VTR-0023", candidate: "John Smith", election: "Student Union 2025", timestamp: "2025-06-12 10:45 AM" },
-      { voterId: "VTR-0045", candidate: "Mary Johnson", election: "Presidential 2025", timestamp: "2025-06-12 11:05 AM" },
-      { voterId: "VTR-0078", candidate: "James Lee", election: "Local Council 2025", timestamp: "2025-06-12 11:30 AM" }
-    ];
+  async function fetchRecords() {
+    try {
+      const metaDoc = await db.collection("meta").doc("currentActive").get();
+      const electionId = metaDoc.exists ? metaDoc.data().electionId : null;
 
-    function maskVoterId(id) {
-      return id.slice(0, -2) + "XX";
-    }
+      const electionTitle = electionId
+        ? (await db.collection("elections").doc(electionId).get()).data()?.title
+        : "(Unknown)";
 
-    const tableBody = document.getElementById("recordsTableBody");
-    const candidateSearchInput = document.getElementById("candidateSearch");
+      const votesSnap = await db.collection("encryptedVotes").get();
+      recordsTable.innerHTML = "";
 
-    function renderTable(filter = "") {
-      tableBody.innerHTML = "";
-      const filteredRecords = records.filter(rec =>
-        rec.candidate.toLowerCase().includes(filter.toLowerCase())
-      );
-
-      if (filteredRecords.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:1rem; color:var(--gray-color);">No records found</td></tr>`;
+      if (votesSnap.empty) {
+        recordsTable.innerHTML = "<tr><td colspan='5'>No records found</td></tr>";
         return;
       }
 
-      filteredRecords.forEach((rec, idx) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${idx + 1}</td>
-          <td class="masked-id" data-label="Voter ID">${maskVoterId(rec.voterId)}</td>
-          <td data-label="Candidate">${rec.candidate}</td>
-          <td data-label="Election">${rec.election}</td>
-          <td data-label="Timestamp">${rec.timestamp}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
+      let i = 1;
 
-    candidateSearchInput.addEventListener("input", e => {
-      renderTable(e.target.value);
-    });
+      votesSnap.forEach(doc => {
+        try {
+          const encrypted = doc.data().encryptedBallot;
+          const decrypted = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_SECRET).toString(CryptoJS.enc.Utf8);
+          const parsed = JSON.parse(decrypted);
 
-    renderTable();
+          if (!parsed || !parsed.candidate || parsed.electionId !== electionId) return;
 
-    document.getElementById("exportCSV").addEventListener("click", () => {
-      let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Voter ID,Candidate,Election,Timestamp\n";
-      records.forEach(rec => {
-        csvContent += `"${maskVoterId(rec.voterId)}","${rec.candidate}","${rec.election}","${rec.timestamp}"\n`;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${i++}</td>
+            <td class="masked-id">${parsed.voterId ? maskId(parsed.voterId) : "Anonymous"}</td>
+            <td>${parsed.candidate}</td>
+            <td>${electionTitle}</td>
+            <td>${new Date(parsed.timestamp).toLocaleString()}</td>
+          `;
+          recordsTable.appendChild(tr);
+        } catch (err) {
+          console.warn("Invalid record:", err.message);
+        }
       });
 
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "securevote_audit_records.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    setInterval(() => {
-      const statuses = ["Unaltered", "Verified", "Checked"];
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-      document.getElementById("blockStatus").textContent = randomStatus;
-    }, 15000);
-
-    const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const navLinks = document.getElementById('navLinks');
-
-    hamburgerBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      const expanded = this.getAttribute('aria-expanded') === 'true';
-      this.setAttribute('aria-expanded', !expanded);
-      navLinks.classList.toggle('show');
-      this.classList.toggle('open');
-    });
-
-    window.addEventListener('click', function (e) {
-      if (
-        window.innerWidth <= 600 &&
-        !navLinks.contains(e.target) &&
-        !hamburgerBtn.contains(e.target)
-      ) {
-        navLinks.classList.remove('show');
-        hamburgerBtn.setAttribute('aria-expanded', 'false');
-        hamburgerBtn.classList.remove('open');
+      if (recordsTable.innerHTML.trim() === "") {
+        recordsTable.innerHTML = "<tr><td colspan='5'>No valid decrypted votes found.</td></tr>";
       }
-    });
-  </script>
+
+    } catch (err) {
+      recordsTable.innerHTML = `<tr><td colspan='5' style='color:red;'>❌ Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  fetchRecords();
+</script>
 </body>
 </html>
